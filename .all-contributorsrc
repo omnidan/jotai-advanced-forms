@@ -1,0 +1,26 @@
+{
+  "badgeTemplate": "\t<a href=\"#contributors\" target=\"_blank\"><img alt=\"👪 All Contributors: <%= contributors.length %>\" src=\"https://img.shields.io/badge/%F0%9F%91%AA_all_contributors-<%= contributors.length %>-21bb42.svg\" /></a>",
+  "contributors": [
+    {
+      "login": "omnidan",
+      "name": "Daniel Bugl",
+      "avatar_url": "https://avatars.githubusercontent.com/u/668674?v=4",
+      "profile": "https://omnidan.net/",
+      "contributions": [
+        "code",
+        "content",
+        "doc",
+        "ideas",
+        "infra",
+        "maintenance",
+        "projectManagement",
+        "tool"
+      ]
+    }
+  ],
+  "contributorsSortAlphabetically": true,
+  "projectName": "jotai-advanced-forms",
+  "projectOwner": "omnidan",
+  "repoType": "github",
+  "commitConvention": "angular"
+}
