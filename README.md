@@ -1,6 +1,6 @@
 <h1 align="center">Jotai Advanced Forms</h1>
 
-<p align="center">📋 collection of atoms, utility functions and hooks to easily create forms with jotai</p>
+<p align="center">📋 collection of atoms, utility functions and hooks to easily create forms with jotai and react</p>
 
 <p align="center">
 	<!-- prettier-ignore-start -->
@@ -15,16 +15,95 @@
 	<img alt="💪 TypeScript: Strict" src="https://img.shields.io/badge/%F0%9F%92%AA_typescript-strict-21bb42.svg" />
 </p>
 
+## 🚧 Work in Progress! 🚧
+
+**Attention!** This library is currently under development and may not be fully functional yet! Please check back later for updates! Your patience is appreciated! Thank you for your understanding! 🎉
+
 ## Usage
 
 ```shell
 npm i jotai-advanced-forms
 ```
 
-```ts
-import { greet } from "jotai-advanced-forms";
+In a directory co-located with the component/page that uses the form, place a `state.ts` file, with the following contents:
 
-greet("Hello, world! 💖");
+```ts
+import { createForm } from "jotai-advanced-forms";
+
+const { formFieldAtom, useForm } = createForm();
+export { useForm };
+
+// required field
+export const firstNameAtom = formFieldAtom<string, "required">({
+  initialState: "",
+  validate: (value) => {
+    if (value.length === 0) return "required";
+  },
+});
+
+// optional field
+export const lastNameAtom = formFieldAtom<string, undefined>({
+  initialState: "",
+});
+```
+
+Then, it is advisable to create custom input components that can deal with the props that this library provides:
+
+```tsx
+import type { UseFormFieldProps } from "jotai-advanced-forms";
+
+export function StringInput({
+  value,
+  onChange,
+  onBlur,
+  ref,
+  hasError,
+  errorCode,
+  errorText,
+}: UseFormFieldProps) {
+  return (
+    <div>
+      <input value={value} onChange={onChange} onBlur={onBlur} ref={ref} />
+      {hasError && (
+        <span>
+          {errorText} ({errorCode})
+        </span>
+      )}
+    </div>
+  );
+}
+```
+
+Now, in a React component that contains the form, you can do the following:
+
+```tsx
+import { useFormField } from "jotai-advanced-forms";
+import { firstNameAtom, lastNameAtom, useForm } from "./state.js";
+
+export function NameInputForm() {
+  const firstNameField = useFormField({
+    atom: firstNameAtom,
+    errors: {
+      // if you do not specify this, it will cause a type error, forcing you to handle error messages!
+      required: "First name is required!",
+    },
+  });
+
+  const lastNameField = useFormField({
+    atom: lastNameAtom,
+  });
+
+  const form = useForm({
+    onValid: () => alert("success!"),
+  });
+
+  return (
+    <form {...form}>
+      <StringInput {...firstNameField} />
+      <StringInput {...lastNameField} />
+    </form>
+  );
+}
 ```
 
 ## Development
