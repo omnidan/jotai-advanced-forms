@@ -1,6 +1,6 @@
 {
   "name": "jotai-advanced-forms",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "📋 collection of atoms, utility functions and hooks to easily create forms with jotai",
   "repository": {
     "type": "git",

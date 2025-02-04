@@ -43,7 +43,7 @@ export interface FormField<
   isDirty: boolean;
   isValid: boolean;
   error?: TErrorMessageKeys;
-  ref: RefObject<HTMLInputElement | null> | null;
+  ref: RefObject<HTMLInputElement> | null;
 }
 
 export type Getter = <Value>(atom: Atom<Value>) => Value;
@@ -79,7 +79,7 @@ export type FormFieldAtom<
 > = WritableAtom<
   FormField<TValue, TErrorMessageKeys>,
   | [TValue | typeof NO_VALUE]
-  | [TValue | typeof NO_VALUE, RefObject<HTMLInputElement | null> | null],
+  | [TValue | typeof NO_VALUE, RefObject<HTMLInputElement> | null],
   void
 >;
 
@@ -92,7 +92,7 @@ export type FormFieldAtomFamily<
   WritableAtom<
     FormField<TValue, TErrorMessageKeys>,
     | [TValue | typeof NO_VALUE]
-    | [TValue | typeof NO_VALUE, RefObject<HTMLInputElement | null> | null],
+    | [TValue | typeof NO_VALUE, RefObject<HTMLInputElement> | null],
     void
   >
 >;
@@ -160,7 +160,7 @@ export function internalFormFieldAtom<
   partOfFamily = false,
 ): FormFieldAtom<TValue, TErrorMessageKeys> {
   const valueAtom = atom(options.initialState);
-  const refAtom = atom<RefObject<HTMLInputElement | null> | null>(null);
+  const refAtom = atom<RefObject<HTMLInputElement> | null>(null);
   const isDirtyAtom = atom(false);
 
   const formFieldAtom = atom(
@@ -184,7 +184,7 @@ export function internalFormFieldAtom<
       _,
       set,
       value: TValue | typeof NO_VALUE = NO_VALUE,
-      ref: RefObject<HTMLInputElement | null> | null = null,
+      ref: RefObject<HTMLInputElement> | null = null,
     ) => {
       if (ref !== null) {
         set(refAtom, ref);

@@ -60,14 +60,19 @@ export function StringInput({
   hasError,
   errorCode,
   errorText,
-}: UseFormFieldProps) {
+}: UseFormFieldProps<string>) {
   return (
     <div>
-      <input value={value} onChange={onChange} onBlur={onBlur} ref={ref} />
+      <input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onBlur={onBlur}
+        ref={ref}
+      />
       {hasError && (
-        <span>
+        <p>
           {errorText} ({errorCode})
-        </span>
+        </p>
       )}
     </div>
   );
@@ -79,6 +84,7 @@ Now, in a React component that contains the form, you can do the following:
 ```tsx
 import { useFormField } from "jotai-advanced-forms";
 import { firstNameAtom, lastNameAtom, useForm } from "./state.js";
+import { StringInput } from "./StringInput.js";
 
 export function NameInputForm() {
   const firstNameField = useFormField({
@@ -93,14 +99,20 @@ export function NameInputForm() {
     atom: lastNameAtom,
   });
 
-  const form = useForm({
+  const { submitForm, isSubmitting } = useForm({
     onValid: () => alert("success!"),
   });
 
+  function handleSubmit(e) {
+    e.preventDefault();
+    submitForm();
+  }
+
   return (
-    <form {...form}>
+    <form onSubmit={handleSubmit}>
       <StringInput {...firstNameField} />
       <StringInput {...lastNameField} />
+      <input type="submit" value="Submit" disabled={isSubmitting} />
     </form>
   );
 }

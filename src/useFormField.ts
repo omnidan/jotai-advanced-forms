@@ -49,7 +49,7 @@ export interface UseFormFieldProps<TValue extends PrimitiveValue> {
   value: TValue;
   onChange: (value: TValue) => void;
   onBlur: () => void;
-  ref: RefObject<HTMLInputElement | null>;
+  ref: RefObject<HTMLInputElement>;
   hasError: boolean;
   errorCode?: string;
   errorText?: string;
@@ -63,22 +63,23 @@ export function useFormField<
 ): UseFormFieldProps<TValue> {
   const [field, setField] = useAtom(options.atom);
   const [wasBlurred, setWasBlurred] = useState(false);
-  const inputRef = useRef<HTMLInputElement | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
     if (initialized) return;
     setInitialized(true);
     if (options.initialValue && !field.value) {
-      setField(options.initialValue, inputRef);
+      // TODO: handle case where ref is actually null (hasn't been set)
+      setField(options.initialValue, inputRef as RefObject<HTMLInputElement>);
     } else {
-      setField(NO_VALUE, inputRef);
+      setField(NO_VALUE, inputRef as RefObject<HTMLInputElement>);
     }
   }, [field.value, initialized, options.initialValue, setField]);
 
   const handleChange = useCallback(
     (value: TValue) => {
-      setField(value, inputRef);
+      setField(value, inputRef as RefObject<HTMLInputElement>);
       options.onChange?.(value);
     },
     [setField, options],
@@ -106,7 +107,7 @@ export function useFormField<
     value: field.value,
     onChange: handleChange,
     onBlur: handleBlur,
-    ref: inputRef,
+    ref: inputRef as RefObject<HTMLInputElement>,
     hasError: showError,
     errorCode: field.error,
     errorText:
