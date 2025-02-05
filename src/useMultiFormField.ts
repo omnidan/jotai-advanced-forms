@@ -6,7 +6,7 @@ import type {
   PrimitiveValue,
 } from "./form.js";
 
-export interface UseMultiFormField<
+export interface UseMultiFormFieldProps<
   TValue extends PrimitiveValue,
   TErrorMessageKeys extends GenericErrorMessageKeys = undefined,
 > {
@@ -15,6 +15,11 @@ export interface UseMultiFormField<
   addField: () => void;
   removeField: (id: string) => void;
 }
+
+export type UseMultiFormFieldOptions<
+  TValue extends PrimitiveValue,
+  TErrorMessageKeys extends GenericErrorMessageKeys = undefined,
+> = MultiFormField<TValue, TErrorMessageKeys>;
 
 /**
  * use a "multi form field", which is a way to dynamically add/remove
@@ -28,7 +33,7 @@ export function useMultiFormField<
   atomFamily,
   idCounterAtom,
   usedIdsAtom,
-}: MultiFormField<TValue, TErrorMessageKeys>): UseMultiFormField<
+}: UseMultiFormFieldOptions<TValue, TErrorMessageKeys>): UseMultiFormFieldProps<
   TValue,
   TErrorMessageKeys
 > {

@@ -27,7 +27,7 @@ export type PrimitiveValue = string | number | boolean | Date | undefined;
 
 export type GenericErrorMessageKeys = string | undefined;
 
-export const NO_VALUE = Symbol("@omnidan/jotai-advanced-forms/NO_VALUE");
+export const NO_VALUE = Symbol.for("@omnidan/jotai-advanced-forms/NO_VALUE");
 
 export interface FormState {
   submitted: boolean;
