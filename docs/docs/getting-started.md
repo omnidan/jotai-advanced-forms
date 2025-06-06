@@ -1,7 +1,7 @@
 ---
 id: getting-started
-title: Getting Started
 sidebar_position: 2
+title: Getting Started
 ---
 
 ## Installation
@@ -24,44 +24,98 @@ or
 npm install jotai jotai-advanced-forms
 ```
 
-## Basic Usage
+## Basic Setup of a Form
 
-Here's a minimal example of how to create a form with validation:
+Create a `state.ts` file next to your form component:
 
-```tsx
+```ts
 import { createForm } from "jotai-advanced-forms";
 
 const { formFieldAtom, useForm } = createForm();
+export { useForm };
 
-const nameField = formFieldAtom({
+// required field
+export const firstNameAtom = formFieldAtom<string, "required">({
   initialState: "",
-  validate: (value) => (value.length < 2 ? "Name too short" : undefined),
-  debugLabel: "name",
+  validate: (value) => {
+    if (value.length === 0) return "required";
+  },
 });
 
-function MyForm() {
-  const [name, setName] = useAtom(nameField);
-  const { submitForm, isSubmitting } = useForm({
-    onValid: () => alert("Form is valid!"),
-    onError: () => alert("Please fix errors!"),
+// optional field
+export const lastNameAtom = formFieldAtom<string, undefined>({
+  initialState: "",
+});
+```
+
+## Custom Input Component
+
+Create a reusable input component to handle form field props:
+
+```tsx
+import type { UseFormFieldProps } from "jotai-advanced-forms";
+
+export function StringInput({
+  value,
+  onChange,
+  onBlur,
+  ref,
+  hasError,
+  errorCode,
+  errorText,
+}: UseFormFieldProps<string>) {
+  return (
+    <div>
+      <input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onBlur={onBlur}
+        ref={ref}
+      />
+      {hasError && (
+        <p>
+          {errorText} ({errorCode})
+        </p>
+      )}
+    </div>
+  );
+}
+```
+
+## Using the Form in a Component
+
+```tsx
+import { useFormField } from "jotai-advanced-forms";
+import { firstNameAtom, lastNameAtom, useForm } from "./state.js";
+import { StringInput } from "./StringInput.js";
+
+export function NameInputForm() {
+  const firstNameField = useFormField({
+    atom: firstNameAtom,
+    errors: {
+      // if you do not specify this, it will cause a type error, forcing you to handle error messages!
+      required: "First name is required!",
+    },
   });
 
+  const lastNameField = useFormField({
+    atom: lastNameAtom,
+  });
+
+  const { submitForm, isSubmitting } = useForm({
+    onValid: () => alert("success!"),
+  });
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    submitForm();
+  }
+
   return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        submitForm();
-      }}
-    >
-      <input
-        value={name.value}
-        onChange={(e) => setName(e.target.value)}
-        ref={name.ref}
-      />
-      {name.showError && <span>{name.error}</span>}
-      <button type="submit" disabled={isSubmitting}>
-        Submit
-      </button>
+    <form onSubmit={handleSubmit}>
+      <StringInput {...firstNameField} />
+      <StringInput {...lastNameField} />
+      <input type="submit" value="Submit" disabled={isSubmitting} />
     </form>
   );
 }
