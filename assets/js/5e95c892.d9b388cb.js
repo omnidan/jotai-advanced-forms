@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkjotai_advanced_forms_docs=self.webpackChunkjotai_advanced_forms_docs||[]).push([[647],{1027:(e,s,a)=>{a.r(s),a.d(s,{default:()=>u});a(6672);var r=a(3526),c=a(9021),d=a(3474),o=a(4401),n=a(7743),t=a(3420);function u(e){return(0,t.jsx)(c.e3,{className:(0,r.A)(d.G.wrapper.docsPages),children:(0,t.jsx)(n.A,{children:(0,o.v)(e.route.routes)})})}}}]);
