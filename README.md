@@ -21,7 +21,7 @@
 
 ## Documentation
 
-The docs can be found at http://omnidan.github.io/jotai-advanced-forms/
+The docs can be found at https://omnidan.github.io/jotai-advanced-forms/
 
 ## Usage
 
