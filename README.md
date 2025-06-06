@@ -19,6 +19,10 @@
 
 **Attention!** This library is currently under development and may not be fully functional yet! Please check back later for updates! Your patience is appreciated! Thank you for your understanding! 🎉
 
+## Documentation
+
+The docs can be found at http://omnidan.github.io/jotai-advanced-forms/
+
 ## Usage
 
 ```shell
