@@ -401,9 +401,9 @@ export function internalCreateForm() {
     // in this case, we do not care about the actual value of form field families, just that they are form field families
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     FormFieldAtomFamily<any, any, GenericErrorMessageKeys, any>,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     Map<
       PrimitiveParam,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       [FormFieldAtom<any, GenericErrorMessageKeys, any>, number]
     >
   >();
