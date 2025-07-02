@@ -81,7 +81,7 @@ React hook for handling form submission and validation.
 
 ## Types
 
-- `FormField<TValue, TErrorMessageKeys>` – State for a single field.
+- `FormField<TValue, TErrorMessageKeys, TRef>` – State for a single field.
 - `Form` – State for the whole form.
 - `FormFieldAtom`, `FormFieldAtomFamily`, `MultiFormField` – Atom types for fields.
 

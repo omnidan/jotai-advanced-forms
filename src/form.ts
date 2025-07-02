@@ -20,7 +20,7 @@ export type JotaiCallback<Param, AtomType> = (event: {
 // at this point we cannot statically guarantee that it has the correct generic
 // so, we need to use `any`, but after getting the value, we can return it with the generic
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type AnyFormFieldAtom = FormFieldAtom<any, any>;
+export type AnyFormFieldAtom = FormFieldAtom<any, any, any>;
 
 export type PrimitiveParam = string;
 export type PrimitiveValue = string | number | boolean | Date | undefined;
@@ -37,13 +37,14 @@ export interface FormState {
 export interface FormField<
   TValue extends PrimitiveValue,
   TErrorMessageKeys extends GenericErrorMessageKeys = undefined,
+  TRef extends HTMLElement = HTMLInputElement,
 > {
   showError: boolean;
   value: TValue;
   isDirty: boolean;
   isValid: boolean;
   error?: TErrorMessageKeys;
-  ref: RefObject<HTMLInputElement> | null;
+  ref: RefObject<TRef> | null;
 }
 
 export type Getter = <Value>(atom: Atom<Value>) => Value;
@@ -76,10 +77,11 @@ export interface FormFieldAtomFamilyOptions<
 export type FormFieldAtom<
   TValue extends PrimitiveValue,
   TErrorMessageKeys extends GenericErrorMessageKeys = undefined,
+  TRef extends HTMLElement = HTMLInputElement,
 > = WritableAtom<
-  FormField<TValue, TErrorMessageKeys>,
+  FormField<TValue, TErrorMessageKeys, TRef>,
   | [TValue | typeof NO_VALUE]
-  | [TValue | typeof NO_VALUE, RefObject<HTMLInputElement> | null],
+  | [TValue | typeof NO_VALUE, RefObject<TRef> | null],
   void
 >;
 
@@ -87,12 +89,13 @@ export type FormFieldAtomFamily<
   TParam extends PrimitiveParam,
   TValue extends PrimitiveValue,
   TErrorMessageKeys extends GenericErrorMessageKeys = undefined,
+  TRef extends HTMLElement = HTMLInputElement,
 > = AtomFamily<
   TParam,
   WritableAtom<
-    FormField<TValue, TErrorMessageKeys>,
+    FormField<TValue, TErrorMessageKeys, TRef>,
     | [TValue | typeof NO_VALUE]
-    | [TValue | typeof NO_VALUE, RefObject<HTMLInputElement> | null],
+    | [TValue | typeof NO_VALUE, RefObject<TRef> | null],
     void
   >
 >;
@@ -100,8 +103,9 @@ export type FormFieldAtomFamily<
 export interface MultiFormField<
   TValue extends PrimitiveValue,
   TErrorMessageKeys extends GenericErrorMessageKeys = undefined,
+  TRef extends HTMLElement = HTMLInputElement,
 > {
-  atomFamily: FormFieldAtomFamily<string, TValue, TErrorMessageKeys>;
+  atomFamily: FormFieldAtomFamily<string, TValue, TErrorMessageKeys, TRef>;
   idCounterAtom: PrimitiveAtom<number>;
   usedIdsAtom: PrimitiveAtom<number[]>;
   valuesAtom: Atom<TValue[]>;
@@ -154,13 +158,14 @@ export function internalFormStateAtom(): PrimitiveAtom<FormState> {
 export function internalFormFieldAtom<
   TValue extends PrimitiveValue,
   TErrorMessageKeys extends GenericErrorMessageKeys = undefined,
+  TRef extends HTMLElement = HTMLInputElement,
 >(
   formStateAtom: Atom<FormState>,
   options: FormFieldAtomOptions<TValue, TErrorMessageKeys>,
   partOfFamily = false,
-): FormFieldAtom<TValue, TErrorMessageKeys> {
+): FormFieldAtom<TValue, TErrorMessageKeys, TRef> {
   const valueAtom = atom(options.initialState);
-  const refAtom = atom<RefObject<HTMLInputElement> | null>(null);
+  const refAtom = atom<RefObject<TRef> | null>(null);
   const isDirtyAtom = atom(false);
 
   const formFieldAtom = atom(
@@ -184,7 +189,7 @@ export function internalFormFieldAtom<
       _,
       set,
       value: TValue | typeof NO_VALUE = NO_VALUE,
-      ref: RefObject<HTMLInputElement> | null = null,
+      ref: RefObject<TRef> | null = null,
     ) => {
       if (ref !== null) {
         set(refAtom, ref);
@@ -213,12 +218,13 @@ export function internalFormFieldAtomFamily<
   TParam extends PrimitiveParam,
   TValue extends PrimitiveValue,
   TErrorMessageKeys extends GenericErrorMessageKeys = undefined,
+  TRef extends HTMLElement = HTMLInputElement,
 >(
   formStateAtom: Atom<FormState>,
   options: FormFieldAtomFamilyOptions<TParam, TValue, TErrorMessageKeys>,
-): FormFieldAtomFamily<TParam, TValue, TErrorMessageKeys> {
+): FormFieldAtomFamily<TParam, TValue, TErrorMessageKeys, TRef> {
   return atomFamily((param: TParam) =>
-    internalFormFieldAtom<TValue, TErrorMessageKeys>(
+    internalFormFieldAtom<TValue, TErrorMessageKeys, TRef>(
       formStateAtom,
       {
         ...options,
@@ -385,26 +391,36 @@ export function internalCreateForm() {
   // used to validate the whole form later
   // in this case, we do not care about the actual value of form fields, just that they are form fields
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const formFields = new Set<FormFieldAtom<any, GenericErrorMessageKeys>>([]);
+  const formFields = new Set<FormFieldAtom<any, GenericErrorMessageKeys, any>>(
+    [],
+  );
 
   // store a mapping from form field atom families to their instantiated form fields
   // we need this so we can track when form fields get removed from the family
   const formFieldAtomFamilies = new Map<
     // in this case, we do not care about the actual value of form field families, just that they are form field families
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    FormFieldAtomFamily<any, any, GenericErrorMessageKeys>,
+    FormFieldAtomFamily<any, any, GenericErrorMessageKeys, any>,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    Map<PrimitiveParam, [FormFieldAtom<any, GenericErrorMessageKeys>, number]>
+    Map<
+      PrimitiveParam,
+      [FormFieldAtom<any, GenericErrorMessageKeys, any>, number]
+    >
   >();
 
   // atom creator function for a single form field
   function formFieldAtom<
     TValue extends PrimitiveValue,
     TErrorMessageKeys extends GenericErrorMessageKeys = undefined,
+    TRef extends HTMLElement = HTMLInputElement,
   >(
     options: FormFieldAtomOptions<TValue, TErrorMessageKeys>,
-  ): FormFieldAtom<TValue, TErrorMessageKeys> {
-    const createdFormFieldAtom = internalFormFieldAtom(formStateAtom, options);
+  ): FormFieldAtom<TValue, TErrorMessageKeys, TRef> {
+    const createdFormFieldAtom = internalFormFieldAtom<
+      TValue,
+      TErrorMessageKeys,
+      TRef
+    >(formStateAtom, options);
     formFields.add(createdFormFieldAtom);
     return createdFormFieldAtom;
   }
@@ -414,14 +430,16 @@ export function internalCreateForm() {
     TParam extends PrimitiveParam,
     TValue extends PrimitiveValue,
     TErrorMessageKeys extends GenericErrorMessageKeys = undefined,
+    TRef extends HTMLElement = HTMLInputElement,
   >(
     options: FormFieldAtomFamilyOptions<TParam, TValue, TErrorMessageKeys>,
     areEqual?: (a: TParam, b: TParam) => boolean,
-  ): FormFieldAtomFamily<TParam, TValue, TErrorMessageKeys> {
+  ): FormFieldAtomFamily<TParam, TValue, TErrorMessageKeys, TRef> {
     const createdFormFieldAtomFamily = internalFormFieldAtomFamily<
       TParam,
       TValue,
-      TErrorMessageKeys
+      TErrorMessageKeys,
+      TRef
     >(formStateAtom, options);
     formFieldAtomFamilies.set(createdFormFieldAtomFamily, new Map());
     let shouldRemove: ShouldRemove<TParam> | null = null;
@@ -568,14 +586,17 @@ export function internalCreateForm() {
   function multiFormField<
     TValue extends PrimitiveValue,
     TErrorMessageKeys extends GenericErrorMessageKeys = undefined,
+    TRef extends HTMLElement = HTMLInputElement,
   >(
     options: FormFieldAtomFamilyOptions<string, TValue, TErrorMessageKeys>,
     areEqual?: (a: string, b: string) => boolean,
-  ): MultiFormField<TValue, TErrorMessageKeys> {
-    const atomFamily = formFieldAtomFamily<string, TValue, TErrorMessageKeys>(
-      options,
-      areEqual,
-    );
+  ): MultiFormField<TValue, TErrorMessageKeys, TRef> {
+    const atomFamily = formFieldAtomFamily<
+      string,
+      TValue,
+      TErrorMessageKeys,
+      TRef
+    >(options, areEqual);
     // initialize multi form field by adding one field by default
     // TODO: we could make this configurable
     const idCounterAtom = atom<number>(1);
