@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { describe, test, expect, vi } from "vitest";
 import { createStore, useAtom, type Atom } from "jotai";
-import { act, renderHook, waitFor } from "@testing-library/react";
+import { act, render, renderHook, waitFor } from "@testing-library/react";
 import {
   type FormFieldAtom,
   type GenericErrorMessageKeys,
@@ -12,6 +12,7 @@ import {
   internalFormStateAtom,
   createForm,
 } from "./form.js";
+import { useFormField } from "./useFormField.js";
 
 describe("formFieldAtom", () => {
   test("value should initially be set to initialValue", () => {
@@ -1009,5 +1010,61 @@ describe("compatibility of formFieldAtomFamily with Jotai atomFamily API (with a
     );
     const [{ value: newThirdValue }] = newThirdResult.current;
     expect(newThirdValue).toBe(3);
+  });
+});
+
+describe("different ref types", () => {
+  test("using a textarea with a formField", () => {
+    const { formFieldAtom } = createForm();
+
+    const atom = formFieldAtom<string, "required", HTMLTextAreaElement>({
+      initialState: "",
+      validate: (value) => {
+        if (value.length === 0) return "required";
+      },
+    });
+
+    const {
+      result: {
+        current: { ref },
+      },
+    } = renderHook(() =>
+      useFormField({
+        atom,
+      }),
+    );
+
+    render(<textarea ref={ref} />);
+
+    expect(ref.current.tagName).toBe("TEXTAREA");
+  });
+
+  test("using a textarea with a formFieldFamily", () => {
+    const { formFieldAtomFamily } = createForm();
+
+    const atomFamily = formFieldAtomFamily<
+      string,
+      string,
+      undefined,
+      HTMLTextAreaElement
+    >({
+      initialState: "",
+    });
+
+    const atomOne = atomFamily("one");
+
+    const {
+      result: {
+        current: { ref },
+      },
+    } = renderHook(() =>
+      useFormField({
+        atom: atomOne,
+      }),
+    );
+
+    render(<textarea ref={ref} />);
+
+    expect(ref.current.tagName).toBe("TEXTAREA");
   });
 });

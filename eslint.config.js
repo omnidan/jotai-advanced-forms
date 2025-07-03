@@ -4,16 +4,20 @@ import tseslint from "typescript-eslint";
 
 export default tseslint.config(
   {
-    ignores: ["**/*.snap", "coverage", "lib", "node_modules", "pnpm-lock.yaml"],
+    ignores: [
+      "**/*.snap",
+      "coverage",
+      "lib",
+      "node_modules",
+      "pnpm-lock.yaml",
+      "docs",
+    ],
   },
   { linterOptions: { reportUnusedDisableDirectives: "error" } },
   eslint.configs.recommended,
+  tseslint.configs.strictTypeChecked,
+  tseslint.configs.stylisticTypeChecked,
   {
-    extends: [
-      tseslint.configs.strictTypeChecked,
-      tseslint.configs.stylisticTypeChecked,
-    ],
-    files: ["**/*.js", "**/*.ts"],
     languageOptions: {
       parserOptions: {
         projectService: { allowDefaultProject: ["*.config.*s"] },
@@ -22,12 +26,6 @@ export default tseslint.config(
     },
   },
   {
-    extends: [vitest.configs.recommended],
-    files: ["**/*.test.*"],
-    rules: { "@typescript-eslint/no-unsafe-assignment": "off" },
-  },
-  {
-    files: ["**/*.{js,mjs,cjs,ts,tsx}"],
     rules: {
       "@typescript-eslint/no-unused-vars": [
         "warn",
@@ -40,5 +38,10 @@ export default tseslint.config(
         },
       ],
     },
+  },
+  {
+    extends: [vitest.configs.recommended],
+    files: ["**/*.test.*"],
+    rules: { "@typescript-eslint/no-unsafe-assignment": "off" },
   },
 );
