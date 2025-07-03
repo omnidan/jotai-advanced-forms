@@ -55,9 +55,6 @@
   "engines": {
     "node": ">=18.3.0"
   },
-  "publishConfig": {
-    "provenance": true
-  },
   "packageManager": "pnpm@10.2.0",
   "peerDependencies": {
     "jotai": "^2.11.3",
