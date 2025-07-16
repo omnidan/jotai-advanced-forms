@@ -7,7 +7,6 @@ import {
   type RefObject,
 } from "react";
 import {
-  type PrimitiveValue,
   type FormFieldAtom,
   type GenericErrorMessageKeys,
   NO_VALUE,
@@ -18,7 +17,7 @@ import type {
 } from "./formErrorMessages.js";
 
 export type UseFormFieldOptions<
-  TValue extends PrimitiveValue,
+  TValue,
   TErrorMessageKeys extends GenericErrorMessageKeys,
   TRef extends HTMLElement = HTMLInputElement,
 > = {
@@ -46,10 +45,7 @@ export type UseFormFieldOptions<
   DefaultErrorMessageKeys
 >;
 
-export interface UseFormFieldProps<
-  TValue extends PrimitiveValue,
-  TRef extends HTMLElement,
-> {
+export interface UseFormFieldProps<TValue, TRef extends HTMLElement> {
   value: TValue;
   onChange: (value: TValue) => void;
   onBlur: () => void;
@@ -60,7 +56,7 @@ export interface UseFormFieldProps<
 }
 
 export function useFormField<
-  TValue extends PrimitiveValue,
+  TValue,
   TErrorMessageKeys extends GenericErrorMessageKeys = undefined,
   TRef extends HTMLElement = HTMLInputElement,
 >(
