@@ -306,7 +306,6 @@ describe("formAtom", () => {
 
     // FIXME: these types don't match because we use `any` in some places,
     //        but it expects a PrimitiveValue
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const formAtom = internalFormAtom(formStateAtom, formFieldAtoms);
 
     const { result } = renderHook(() => useAtom(firstFieldAtom));
@@ -348,7 +347,6 @@ describe("formAtom", () => {
 
     // FIXME: these types don't match because we use `any` in some places,
     //        but it expects a PrimitiveValue
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const formAtom = internalFormAtom(formStateAtom, formFieldAtoms);
 
     const { result } = renderHook(() => useAtom(firstFieldAtom));
