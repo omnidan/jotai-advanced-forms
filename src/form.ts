@@ -23,7 +23,7 @@ export type JotaiCallback<Param, AtomType> = (event: {
 export type AnyFormFieldAtom = FormFieldAtom<any, any, any>;
 
 export type PrimitiveParam = string;
-export type AnyValue = unknown;
+export type UnknownValue = unknown;
 
 export type GenericErrorMessageKeys = string | undefined;
 
@@ -113,7 +113,10 @@ export interface MultiFormField<
 
 export interface Form extends FormState {
   isValid: boolean;
-  focusableFormFieldsWithError: FormField<AnyValue, GenericErrorMessageKeys>[];
+  focusableFormFieldsWithError: FormField<
+    UnknownValue,
+    GenericErrorMessageKeys
+  >[];
 }
 
 export type FormAtomType = WritableAtom<Form, Partial<FormState>[], void>;
@@ -243,14 +246,16 @@ export function internalFormFieldAtomFamily<
  */
 export function internalFormAtom(
   formStateAtom: PrimitiveAtom<FormState>,
-  formFieldAtoms: Set<FormFieldAtom<AnyValue, GenericErrorMessageKeys>>,
+  formFieldAtoms: Set<FormFieldAtom<UnknownValue, GenericErrorMessageKeys>>,
 ): FormAtomType {
   const formAtom = atom(
     (get) => {
       const res = {
         ...get(formStateAtom),
         isValid: Array.from(formFieldAtoms.values()).every(
-          (formFieldAtom: FormFieldAtom<AnyValue, GenericErrorMessageKeys>) => {
+          (
+            formFieldAtom: FormFieldAtom<UnknownValue, GenericErrorMessageKeys>,
+          ) => {
             const { isValid } = get(formFieldAtom);
             return isValid;
           },

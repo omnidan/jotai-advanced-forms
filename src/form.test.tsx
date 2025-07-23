@@ -315,8 +315,6 @@ describe("formAtom", () => {
       [firstFieldAtom, secondFieldAtom],
     );
 
-    // FIXME: these types don't match because we use `any` in some places,
-    //        but it expects a PrimitiveValue
     const formAtom = internalFormAtom(formStateAtom, formFieldAtoms);
 
     const { result } = renderHook(() => useAtom(firstFieldAtom));
@@ -356,8 +354,6 @@ describe("formAtom", () => {
       [firstFieldAtom, secondFieldAtom],
     );
 
-    // FIXME: these types don't match because we use `any` in some places,
-    //        but it expects a PrimitiveValue
     const formAtom = internalFormAtom(formStateAtom, formFieldAtoms);
 
     const { result } = renderHook(() => useAtom(firstFieldAtom));
@@ -1080,7 +1076,7 @@ describe("different ref types", () => {
   test("validate an atom with initialState null that is set to a string", async () => {
     const { formFieldAtom, useForm } = createForm();
 
-    // set initialState to null and validate it
+    // set initialState to null and define validation
     const atom = formFieldAtom<string | null, "required">({
       initialState: null,
       validate: (value) => {
@@ -1088,6 +1084,7 @@ describe("different ref types", () => {
       },
     });
 
+    // define form
     const {
       result: {
         current: { submitForm },
@@ -1100,13 +1097,19 @@ describe("different ref types", () => {
       }),
     );
 
-    // set value to a string
+    // set value from null to a string
     const { result: fieldResult } = renderHook(() => useAtom(atom));
     const [_, setValue] = fieldResult.current;
     act(() => {
       setValue("test value");
     });
 
+    // submit form to trigger validation
+    await waitFor(() => {
+      submitForm();
+    });
+
+    // fetch result from form field
     const {
       result: { current },
     } = renderHook(() =>
@@ -1117,10 +1120,6 @@ describe("different ref types", () => {
         },
       }),
     );
-
-    await waitFor(() => {
-      submitForm();
-    });
 
     expect(current.hasError).toBe(false);
     expect(current.errorCode).toBeUndefined();
