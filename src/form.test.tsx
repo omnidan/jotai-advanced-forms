@@ -15,7 +15,7 @@ import {
 import { useFormField } from "./useFormField.js";
 
 describe("formFieldAtom", () => {
-  test("value should initially be set to initialValue", () => {
+  test("value should initially be set to initialValue (empty string)", () => {
     const formStateAtom = internalFormStateAtom();
     const formFieldAtom = internalFormFieldAtom(formStateAtom, {
       initialState: "",
@@ -24,6 +24,17 @@ describe("formFieldAtom", () => {
     const { result } = renderHook(() => useAtom(formFieldAtom));
     const [{ value }] = result.current;
     expect(value).toBe("");
+  });
+
+  test("value should initially be set to initialValue (null)", () => {
+    const formStateAtom = internalFormStateAtom();
+    const formFieldAtom = internalFormFieldAtom(formStateAtom, {
+      initialState: null,
+    });
+
+    const { result } = renderHook(() => useAtom(formFieldAtom));
+    const [{ value }] = result.current;
+    expect(value).toBe(null);
   });
 
   test("setting atom should set value", () => {
@@ -304,9 +315,6 @@ describe("formAtom", () => {
       [firstFieldAtom, secondFieldAtom],
     );
 
-    // FIXME: these types don't match because we use `any` in some places,
-    //        but it expects a PrimitiveValue
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const formAtom = internalFormAtom(formStateAtom, formFieldAtoms);
 
     const { result } = renderHook(() => useAtom(firstFieldAtom));
@@ -346,9 +354,6 @@ describe("formAtom", () => {
       [firstFieldAtom, secondFieldAtom],
     );
 
-    // FIXME: these types don't match because we use `any` in some places,
-    //        but it expects a PrimitiveValue
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const formAtom = internalFormAtom(formStateAtom, formFieldAtoms);
 
     const { result } = renderHook(() => useAtom(firstFieldAtom));
@@ -1066,5 +1071,84 @@ describe("different ref types", () => {
     render(<textarea ref={ref} />);
 
     expect(ref.current.tagName).toBe("TEXTAREA");
+  });
+
+  test("validate an atom with initialState null that is set to a string", async () => {
+    const { formFieldAtom, useForm } = createForm();
+
+    // set initialState to null and define validation
+    const atom = formFieldAtom<string | null, "required">({
+      initialState: null,
+      validate: (value) => {
+        if (value === null || value.length === 0) return "required";
+      },
+    });
+
+    // define form
+    const {
+      result: {
+        current: { submitForm },
+      },
+    } = renderHook(() =>
+      useForm({
+        onValid: () => {
+          /* do nothing */
+        },
+      }),
+    );
+
+    // set value from null to a string
+    const { result: fieldResult } = renderHook(() => useAtom(atom));
+    const [_, setValue] = fieldResult.current;
+    act(() => {
+      setValue("test value");
+    });
+
+    // submit form to trigger validation
+    await waitFor(() => {
+      submitForm();
+    });
+
+    // fetch result from form field
+    const {
+      result: { current },
+    } = renderHook(() =>
+      useFormField({
+        atom,
+        errors: {
+          required: "Please fill out this field.",
+        },
+      }),
+    );
+
+    expect(current.hasError).toBe(false);
+    expect(current.errorCode).toBeUndefined();
+    expect(current.value).toBe("test value");
+  });
+
+  test("validate an atom with a file object array", () => {
+    const { formFieldAtom } = createForm();
+
+    const atom = formFieldAtom<File[], "required">({
+      initialState: [new File(["A text file"], "filename.txt")],
+      validate: (value) => {
+        if (value.length === 0) return "required";
+      },
+    });
+
+    const {
+      result: { current },
+    } = renderHook(() =>
+      useFormField({
+        atom,
+        errors: {
+          required: "Please upload at least one file.",
+        },
+      }),
+    );
+
+    expect(current.hasError).toBe(false);
+    expect(current.value).toBeInstanceOf(Array);
+    expect(current.value[0]).toBeInstanceOf(File);
   });
 });

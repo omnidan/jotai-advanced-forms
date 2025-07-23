@@ -23,7 +23,7 @@ export type JotaiCallback<Param, AtomType> = (event: {
 export type AnyFormFieldAtom = FormFieldAtom<any, any, any>;
 
 export type PrimitiveParam = string;
-export type PrimitiveValue = string | number | boolean | Date | undefined;
+export type UnknownValue = unknown;
 
 export type GenericErrorMessageKeys = string | undefined;
 
@@ -35,7 +35,7 @@ export interface FormState {
 }
 
 export interface FormField<
-  TValue extends PrimitiveValue,
+  TValue,
   TErrorMessageKeys extends GenericErrorMessageKeys = undefined,
   TRef extends HTMLElement = HTMLInputElement,
 > {
@@ -54,7 +54,7 @@ export type ShouldRemove<Param extends PrimitiveParam> = (
 ) => boolean;
 
 export interface FormFieldAtomOptions<
-  TValue extends PrimitiveValue,
+  TValue,
   TErrorMessageKeys extends GenericErrorMessageKeys = undefined,
 > {
   initialState: TValue;
@@ -64,7 +64,7 @@ export interface FormFieldAtomOptions<
 
 export interface FormFieldAtomFamilyOptions<
   TParam extends PrimitiveParam,
-  TValue extends PrimitiveValue,
+  TValue,
   TErrorMessageKeys extends GenericErrorMessageKeys = undefined,
 > {
   initialState: TValue;
@@ -75,7 +75,7 @@ export interface FormFieldAtomFamilyOptions<
 }
 
 export type FormFieldAtom<
-  TValue extends PrimitiveValue,
+  TValue,
   TErrorMessageKeys extends GenericErrorMessageKeys = undefined,
   TRef extends HTMLElement = HTMLInputElement,
 > = WritableAtom<
@@ -87,7 +87,7 @@ export type FormFieldAtom<
 
 export type FormFieldAtomFamily<
   TParam extends PrimitiveParam,
-  TValue extends PrimitiveValue,
+  TValue,
   TErrorMessageKeys extends GenericErrorMessageKeys = undefined,
   TRef extends HTMLElement = HTMLInputElement,
 > = AtomFamily<
@@ -101,7 +101,7 @@ export type FormFieldAtomFamily<
 >;
 
 export interface MultiFormField<
-  TValue extends PrimitiveValue,
+  TValue,
   TErrorMessageKeys extends GenericErrorMessageKeys = undefined,
   TRef extends HTMLElement = HTMLInputElement,
 > {
@@ -114,7 +114,7 @@ export interface MultiFormField<
 export interface Form extends FormState {
   isValid: boolean;
   focusableFormFieldsWithError: FormField<
-    PrimitiveValue,
+    UnknownValue,
     GenericErrorMessageKeys
   >[];
 }
@@ -156,7 +156,7 @@ export function internalFormStateAtom(): PrimitiveAtom<FormState> {
  * or not depending on the form state (already submitted)
  */
 export function internalFormFieldAtom<
-  TValue extends PrimitiveValue,
+  TValue,
   TErrorMessageKeys extends GenericErrorMessageKeys = undefined,
   TRef extends HTMLElement = HTMLInputElement,
 >(
@@ -216,7 +216,7 @@ export function internalFormFieldAtom<
 
 export function internalFormFieldAtomFamily<
   TParam extends PrimitiveParam,
-  TValue extends PrimitiveValue,
+  TValue,
   TErrorMessageKeys extends GenericErrorMessageKeys = undefined,
   TRef extends HTMLElement = HTMLInputElement,
 >(
@@ -246,7 +246,7 @@ export function internalFormFieldAtomFamily<
  */
 export function internalFormAtom(
   formStateAtom: PrimitiveAtom<FormState>,
-  formFieldAtoms: Set<FormFieldAtom<PrimitiveValue, GenericErrorMessageKeys>>,
+  formFieldAtoms: Set<FormFieldAtom<UnknownValue, GenericErrorMessageKeys>>,
 ): FormAtomType {
   const formAtom = atom(
     (get) => {
@@ -254,10 +254,7 @@ export function internalFormAtom(
         ...get(formStateAtom),
         isValid: Array.from(formFieldAtoms.values()).every(
           (
-            formFieldAtom: FormFieldAtom<
-              PrimitiveValue,
-              GenericErrorMessageKeys
-            >,
+            formFieldAtom: FormFieldAtom<UnknownValue, GenericErrorMessageKeys>,
           ) => {
             const { isValid } = get(formFieldAtom);
             return isValid;
@@ -410,7 +407,7 @@ export function internalCreateForm() {
 
   // atom creator function for a single form field
   function formFieldAtom<
-    TValue extends PrimitiveValue,
+    TValue,
     TErrorMessageKeys extends GenericErrorMessageKeys = undefined,
     TRef extends HTMLElement = HTMLInputElement,
   >(
@@ -428,7 +425,7 @@ export function internalCreateForm() {
   // atom creator function for form field families
   function formFieldAtomFamily<
     TParam extends PrimitiveParam,
-    TValue extends PrimitiveValue,
+    TValue,
     TErrorMessageKeys extends GenericErrorMessageKeys = undefined,
     TRef extends HTMLElement = HTMLInputElement,
   >(
@@ -584,7 +581,7 @@ export function internalCreateForm() {
    * first names.
    */
   function multiFormField<
-    TValue extends PrimitiveValue,
+    TValue,
     TErrorMessageKeys extends GenericErrorMessageKeys = undefined,
     TRef extends HTMLElement = HTMLInputElement,
   >(

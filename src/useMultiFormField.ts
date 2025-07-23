@@ -3,11 +3,10 @@ import type {
   FormFieldAtomFamily,
   GenericErrorMessageKeys,
   MultiFormField,
-  PrimitiveValue,
 } from "./form.js";
 
 export interface UseMultiFormFieldProps<
-  TValue extends PrimitiveValue,
+  TValue,
   TErrorMessageKeys extends GenericErrorMessageKeys = undefined,
 > {
   atomFamily: FormFieldAtomFamily<string, TValue, TErrorMessageKeys>;
@@ -17,7 +16,7 @@ export interface UseMultiFormFieldProps<
 }
 
 export type UseMultiFormFieldOptions<
-  TValue extends PrimitiveValue,
+  TValue,
   TErrorMessageKeys extends GenericErrorMessageKeys = undefined,
 > = MultiFormField<TValue, TErrorMessageKeys>;
 
@@ -27,7 +26,7 @@ export type UseMultiFormFieldOptions<
  * first names.
  */
 export function useMultiFormField<
-  TValue extends PrimitiveValue,
+  TValue,
   TErrorMessageKeys extends GenericErrorMessageKeys = undefined,
 >({
   atomFamily,
