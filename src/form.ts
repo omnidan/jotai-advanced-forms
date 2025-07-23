@@ -115,7 +115,8 @@ export interface Form extends FormState {
   isValid: boolean;
   focusableFormFieldsWithError: FormField<
     UnknownValue,
-    GenericErrorMessageKeys
+    GenericErrorMessageKeys,
+    HTMLElement
   >[];
 }
 
@@ -331,8 +332,14 @@ export function internalCreateUseForm(formAtom: FormAtomType): UseFormFunction {
           fieldToFocus.addEventListener(
             "focus",
             (e) => {
-              const target = e.target as HTMLElement;
-              target.scrollIntoView({
+              if (!(e.target instanceof HTMLElement)) {
+                console.error(
+                  "focus event target is not an HTMLElement, cannot scroll into view",
+                );
+                return;
+              }
+
+              e.target.scrollIntoView({
                 block: "center",
               });
             },
