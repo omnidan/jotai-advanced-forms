@@ -15,10 +15,6 @@
 	<img alt="💪 TypeScript: Strict" src="https://img.shields.io/badge/%F0%9F%92%AA_typescript-strict-21bb42.svg" />
 </p>
 
-## 🚧 Work in Progress! 🚧
-
-**Attention!** This library is currently under development and may not be fully functional yet! Please check back later for updates! Your patience is appreciated! Thank you for your understanding! 🎉
-
 ## Documentation
 
 The docs can be found at https://omnidan.github.io/jotai-advanced-forms/
