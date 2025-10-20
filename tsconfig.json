@@ -13,5 +13,6 @@
     "target": "ES2022",
     "jsx": "react-jsx"
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["example", "docs", "node_modules"]
 }

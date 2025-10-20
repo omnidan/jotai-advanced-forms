@@ -1,0 +1,10 @@
+src/
+docs/
+example/
+*.test.ts
+*.test.tsx
+tsup.config.ts
+vitest.config.ts
+tsconfig.json
+pnpm-lock.yaml
+.gitignore
