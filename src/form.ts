@@ -5,7 +5,7 @@ import {
   type PrimitiveAtom,
   type WritableAtom,
 } from "jotai";
-import { atomFamily } from "jotai/utils";
+import { atomFamily, atomWithReset, RESET } from "jotai/utils";
 import { type AtomFamily } from "jotai/vanilla/utils/atomFamily";
 import { useEffect, type RefObject } from "react";
 
@@ -80,8 +80,8 @@ export type FormFieldAtom<
   TRef extends HTMLElement = HTMLInputElement,
 > = WritableAtom<
   FormField<TValue, TErrorMessageKeys, TRef>,
-  | [TValue | typeof NO_VALUE]
-  | [TValue | typeof NO_VALUE, RefObject<TRef> | null],
+  | [TValue | typeof NO_VALUE | typeof RESET]
+  | [TValue | typeof NO_VALUE | typeof RESET, RefObject<TRef> | null],
   void
 >;
 
@@ -94,8 +94,8 @@ export type FormFieldAtomFamily<
   TParam,
   WritableAtom<
     FormField<TValue, TErrorMessageKeys, TRef>,
-    | [TValue | typeof NO_VALUE]
-    | [TValue | typeof NO_VALUE, RefObject<TRef> | null],
+    | [TValue | typeof NO_VALUE | typeof RESET]
+    | [TValue | typeof NO_VALUE | typeof RESET, RefObject<TRef> | null],
     void
   >
 >;
@@ -165,7 +165,7 @@ export function internalFormFieldAtom<
   options: FormFieldAtomOptions<TValue, TErrorMessageKeys>,
   partOfFamily = false,
 ): FormFieldAtom<TValue, TErrorMessageKeys, TRef> {
-  const valueAtom = atom(options.initialState);
+  const valueAtom = atomWithReset(options.initialState);
   const refAtom = atom<RefObject<TRef> | null>(null);
   const isDirtyAtom = atom(false);
 
@@ -189,11 +189,16 @@ export function internalFormFieldAtom<
     (
       _,
       set,
-      value: TValue | typeof NO_VALUE = NO_VALUE,
+      value: TValue | typeof RESET | typeof NO_VALUE = NO_VALUE,
       ref: RefObject<TRef> | null = null,
     ) => {
       if (ref !== null) {
         set(refAtom, ref);
+      }
+      if (value === RESET) {
+        set(valueAtom, RESET);
+        set(isDirtyAtom, false);
+        return;
       }
       if (value !== NO_VALUE) {
         set(valueAtom, value);

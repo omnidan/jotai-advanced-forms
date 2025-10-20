@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 import { describe, test, expect, vi } from "vitest";
 import { createStore, useAtom, type Atom } from "jotai";
+import { useResetAtom } from "jotai/utils";
 import { act, render, renderHook, waitFor } from "@testing-library/react";
 import {
   type FormFieldAtom,
@@ -1150,5 +1151,254 @@ describe("different ref types", () => {
     expect(current.hasError).toBe(false);
     expect(current.value).toBeInstanceOf(Array);
     expect(current.value[0]).toBeInstanceOf(File);
+  });
+});
+
+describe("resetting form fields with useResetAtom", () => {
+  test("should reset a form field to its initial value using useResetAtom", () => {
+    const formStateAtom = internalFormStateAtom();
+    const formFieldAtom = internalFormFieldAtom<string>(formStateAtom, {
+      initialState: "initial value",
+    });
+
+    const { result } = renderHook(() => useAtom(formFieldAtom));
+    const [_, setValue] = result.current;
+
+    // set a new value
+    act(() => {
+      setValue("changed value");
+    });
+
+    const { result: afterChange } = renderHook(() => useAtom(formFieldAtom));
+    const [{ value: changedValue }] = afterChange.current;
+    expect(changedValue).toBe("changed value");
+
+    // reset the atom
+    const { result: resetResult } = renderHook(() =>
+      useResetAtom(formFieldAtom),
+    );
+    act(() => {
+      resetResult.current();
+    });
+
+    const { result: afterReset } = renderHook(() => useAtom(formFieldAtom));
+    const [{ value: resetValue }] = afterReset.current;
+    expect(resetValue).toBe("initial value");
+  });
+
+  test("should reset isDirty flag when resetting a form field", () => {
+    const formStateAtom = internalFormStateAtom();
+    const formFieldAtom = internalFormFieldAtom<string>(formStateAtom, {
+      initialState: "",
+    });
+
+    const { result } = renderHook(() => useAtom(formFieldAtom));
+    const [_, setValue] = result.current;
+
+    // set a new value to make it dirty
+    act(() => {
+      setValue("test value");
+    });
+
+    const { result: afterChange } = renderHook(() => useAtom(formFieldAtom));
+    const [{ isDirty: dirtyAfterChange }] = afterChange.current;
+    expect(dirtyAfterChange).toBe(true);
+
+    // reset the atom
+    const { result: resetResult } = renderHook(() =>
+      useResetAtom(formFieldAtom),
+    );
+    act(() => {
+      resetResult.current();
+    });
+
+    const { result: afterReset } = renderHook(() => useAtom(formFieldAtom));
+    const [{ isDirty: dirtyAfterReset }] = afterReset.current;
+    expect(dirtyAfterReset).toBe(false);
+  });
+
+  test("should reset form field with validation to initial state", () => {
+    const formStateAtom = internalFormStateAtom();
+    const formFieldAtom = internalFormFieldAtom<string, "required">(
+      formStateAtom,
+      {
+        initialState: "valid initial value",
+        validate: (value) => {
+          if (value.length === 0) return "required";
+        },
+      },
+    );
+
+    const { result } = renderHook(() => useAtom(formFieldAtom));
+    const [_, setValue] = result.current;
+
+    // set to invalid value
+    act(() => {
+      setValue("");
+    });
+
+    const { result: afterChange } = renderHook(() => useAtom(formFieldAtom));
+    const [{ isValid: validAfterChange, error: errorAfterChange }] =
+      afterChange.current;
+    expect(validAfterChange).toBe(false);
+    expect(errorAfterChange).toBe("required");
+
+    // reset the atom
+    const { result: resetResult } = renderHook(() =>
+      useResetAtom(formFieldAtom),
+    );
+    act(() => {
+      resetResult.current();
+    });
+
+    const { result: afterReset } = renderHook(() => useAtom(formFieldAtom));
+    const [
+      { value: resetValue, isValid: validAfterReset, error: errorAfterReset },
+    ] = afterReset.current;
+    expect(resetValue).toBe("valid initial value");
+    expect(validAfterReset).toBe(true);
+    expect(errorAfterReset).toBe(undefined);
+  });
+
+  test("should reset a form field atom family member to its initial value", () => {
+    const formStateAtom = internalFormStateAtom();
+    const formFieldAtomFamily = internalFormFieldAtomFamily<string, string>(
+      formStateAtom,
+      {
+        initialState: "initial",
+      },
+    );
+    const formFieldAtom = formFieldAtomFamily("test");
+
+    const { result } = renderHook(() => useAtom(formFieldAtom));
+    const [_, setValue] = result.current;
+
+    // set a new value
+    act(() => {
+      setValue("changed");
+    });
+
+    const { result: afterChange } = renderHook(() => useAtom(formFieldAtom));
+    const [{ value: changedValue }] = afterChange.current;
+    expect(changedValue).toBe("changed");
+
+    // reset the atom
+    const { result: resetResult } = renderHook(() =>
+      useResetAtom(formFieldAtom),
+    );
+    act(() => {
+      resetResult.current();
+    });
+
+    const { result: afterReset } = renderHook(() => useAtom(formFieldAtom));
+    const [{ value: resetValue }] = afterReset.current;
+    expect(resetValue).toBe("initial");
+  });
+
+  test("should reset number field to initial value", () => {
+    const formStateAtom = internalFormStateAtom();
+    const formFieldAtom = internalFormFieldAtom<number>(formStateAtom, {
+      initialState: 0,
+    });
+
+    const { result } = renderHook(() => useAtom(formFieldAtom));
+    const [_, setValue] = result.current;
+
+    // set a new value
+    act(() => {
+      setValue(42);
+    });
+
+    const { result: afterChange } = renderHook(() => useAtom(formFieldAtom));
+    const [{ value: changedValue }] = afterChange.current;
+    expect(changedValue).toBe(42);
+
+    // reset the atom
+    const { result: resetResult } = renderHook(() =>
+      useResetAtom(formFieldAtom),
+    );
+    act(() => {
+      resetResult.current();
+    });
+
+    const { result: afterReset } = renderHook(() => useAtom(formFieldAtom));
+    const [{ value: resetValue }] = afterReset.current;
+    expect(resetValue).toBe(0);
+  });
+
+  test("should reset boolean field to initial value", () => {
+    const formStateAtom = internalFormStateAtom();
+    const formFieldAtom = internalFormFieldAtom<boolean>(formStateAtom, {
+      initialState: false,
+    });
+
+    const { result } = renderHook(() => useAtom(formFieldAtom));
+    const [_, setValue] = result.current;
+
+    // set a new value
+    act(() => {
+      setValue(true);
+    });
+
+    const { result: afterChange } = renderHook(() => useAtom(formFieldAtom));
+    const [{ value: changedValue }] = afterChange.current;
+    expect(changedValue).toBe(true);
+
+    // reset the atom
+    const { result: resetResult } = renderHook(() =>
+      useResetAtom(formFieldAtom),
+    );
+    act(() => {
+      resetResult.current();
+    });
+
+    const { result: afterReset } = renderHook(() => useAtom(formFieldAtom));
+    const [{ value: resetValue }] = afterReset.current;
+    expect(resetValue).toBe(false);
+  });
+
+  test("should reset multiple form fields independently", () => {
+    const formStateAtom = internalFormStateAtom();
+    const firstFieldAtom = internalFormFieldAtom<string>(formStateAtom, {
+      initialState: "first initial",
+    });
+    const secondFieldAtom = internalFormFieldAtom<string>(formStateAtom, {
+      initialState: "second initial",
+    });
+
+    // change both fields
+    const { result: firstResult } = renderHook(() => useAtom(firstFieldAtom));
+    const [_, setFirstValue] = firstResult.current;
+    act(() => {
+      setFirstValue("first changed");
+    });
+
+    const { result: secondResult } = renderHook(() => useAtom(secondFieldAtom));
+    const [_2, setSecondValue] = secondResult.current;
+    act(() => {
+      setSecondValue("second changed");
+    });
+
+    // reset only the first field
+    const { result: resetFirstResult } = renderHook(() =>
+      useResetAtom(firstFieldAtom),
+    );
+    act(() => {
+      resetFirstResult.current();
+    });
+
+    // check first field is reset
+    const { result: afterResetFirst } = renderHook(() =>
+      useAtom(firstFieldAtom),
+    );
+    const [{ value: firstResetValue }] = afterResetFirst.current;
+    expect(firstResetValue).toBe("first initial");
+
+    // check second field is unchanged
+    const { result: afterResetSecond } = renderHook(() =>
+      useAtom(secondFieldAtom),
+    );
+    const [{ value: secondValue }] = afterResetSecond.current;
+    expect(secondValue).toBe("second changed");
   });
 });
