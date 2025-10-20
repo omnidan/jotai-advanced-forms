@@ -1402,3 +1402,305 @@ describe("resetting form fields with useResetAtom", () => {
     expect(secondValue).toBe("second changed");
   });
 });
+
+describe("resetting whole form with resetForm", () => {
+  test("should reset all form fields when calling resetForm", () => {
+    const { formFieldAtom, useForm } = createForm();
+    const firstField = formFieldAtom<string>({
+      initialState: "first initial",
+    });
+    const secondField = formFieldAtom<string>({
+      initialState: "second initial",
+    });
+
+    // change both fields
+    const { result: firstResult } = renderHook(() => useAtom(firstField));
+    const [_, setFirstValue] = firstResult.current;
+    act(() => {
+      setFirstValue("first changed");
+    });
+
+    const { result: secondResult } = renderHook(() => useAtom(secondField));
+    const [_2, setSecondValue] = secondResult.current;
+    act(() => {
+      setSecondValue("second changed");
+    });
+
+    // verify fields are changed
+    const { result: afterChangeFirst } = renderHook(() => useAtom(firstField));
+    const [{ value: firstChanged }] = afterChangeFirst.current;
+    expect(firstChanged).toBe("first changed");
+
+    const { result: afterChangeSecond } = renderHook(() =>
+      useAtom(secondField),
+    );
+    const [{ value: secondChanged }] = afterChangeSecond.current;
+    expect(secondChanged).toBe("second changed");
+
+    // reset the entire form
+    const { result: formResult } = renderHook(() =>
+      useForm({
+        onValid: () => {
+          /* do nothing */
+        },
+      }),
+    );
+    const { resetForm } = formResult.current;
+    act(() => {
+      resetForm();
+    });
+
+    // verify both fields are reset
+    const { result: afterResetFirst } = renderHook(() => useAtom(firstField));
+    const [{ value: firstReset }] = afterResetFirst.current;
+    expect(firstReset).toBe("first initial");
+
+    const { result: afterResetSecond } = renderHook(() => useAtom(secondField));
+    const [{ value: secondReset }] = afterResetSecond.current;
+    expect(secondReset).toBe("second initial");
+  });
+
+  test("should reset isDirty flag for all fields when calling resetForm", () => {
+    const { formFieldAtom, useForm } = createForm();
+    const firstField = formFieldAtom<string>({
+      initialState: "",
+    });
+    const secondField = formFieldAtom<string>({
+      initialState: "",
+    });
+
+    // Change both fields
+    const { result: firstResult } = renderHook(() => useAtom(firstField));
+    const [_, setFirstValue] = firstResult.current;
+    act(() => {
+      setFirstValue("changed");
+    });
+
+    const { result: secondResult } = renderHook(() => useAtom(secondField));
+    const [_2, setSecondValue] = secondResult.current;
+    act(() => {
+      setSecondValue("changed");
+    });
+
+    // verify fields are dirty
+    const { result: afterChangeFirst } = renderHook(() => useAtom(firstField));
+    const [{ isDirty: firstDirty }] = afterChangeFirst.current;
+    expect(firstDirty).toBe(true);
+
+    const { result: afterChangeSecond } = renderHook(() =>
+      useAtom(secondField),
+    );
+    const [{ isDirty: secondDirty }] = afterChangeSecond.current;
+    expect(secondDirty).toBe(true);
+
+    // reset the entire form
+    const { result: formResult } = renderHook(() =>
+      useForm({
+        onValid: () => {
+          /* do nothing */
+        },
+      }),
+    );
+    const { resetForm } = formResult.current;
+    act(() => {
+      resetForm();
+    });
+
+    // verify isDirty is false for both fields
+    const { result: afterResetFirst } = renderHook(() => useAtom(firstField));
+    const [{ isDirty: firstResetDirty }] = afterResetFirst.current;
+    expect(firstResetDirty).toBe(false);
+
+    const { result: afterResetSecond } = renderHook(() => useAtom(secondField));
+    const [{ isDirty: secondResetDirty }] = afterResetSecond.current;
+    expect(secondResetDirty).toBe(false);
+  });
+
+  test("should reset validation state when calling resetForm", () => {
+    const { formFieldAtom, useForm } = createForm();
+    const testField = formFieldAtom<string, "required">({
+      initialState: "",
+      validate: (value) => {
+        if (value.length === 0) return "required";
+      },
+    });
+
+    // submit form with invalid field
+    const { result } = renderHook(() =>
+      useForm({
+        onValid: () => {
+          /* do nothing */
+        },
+      }),
+    );
+    const { submitForm, resetForm } = result.current;
+    act(() => {
+      submitForm();
+    });
+
+    // verify error is shown
+    const { result: afterSubmit } = renderHook(() => useAtom(testField));
+    const [{ showError: errorAfterSubmit }] = afterSubmit.current;
+    expect(errorAfterSubmit).toBe(true);
+
+    // reset the form
+    act(() => {
+      resetForm();
+    });
+
+    // verify error is not shown after reset (validation state reset)
+    const { result: afterReset } = renderHook(() => useAtom(testField));
+    const [{ showError: errorAfterReset }] = afterReset.current;
+    expect(errorAfterReset).toBe(false);
+  });
+
+  test("should reset form fields with validation to valid initial state", () => {
+    const { formFieldAtom, useForm } = createForm();
+    const testField = formFieldAtom<string, "required">({
+      initialState: "valid initial",
+      validate: (value) => {
+        if (value.length === 0) return "required";
+      },
+    });
+
+    // change field to invalid value
+    const { result: fieldResult } = renderHook(() => useAtom(testField));
+    const [_, setValue] = fieldResult.current;
+    act(() => {
+      setValue("");
+    });
+
+    // verify field is invalid
+    const { result: afterChange } = renderHook(() => useAtom(testField));
+    const [{ isValid: validAfterChange, error: errorAfterChange }] =
+      afterChange.current;
+    expect(validAfterChange).toBe(false);
+    expect(errorAfterChange).toBe("required");
+
+    // reset the form
+    const { result: formResult } = renderHook(() =>
+      useForm({
+        onValid: () => {
+          /* do nothing */
+        },
+      }),
+    );
+    const { resetForm } = formResult.current;
+    act(() => {
+      resetForm();
+    });
+
+    // verify field is reset to valid initial state
+    const { result: afterReset } = renderHook(() => useAtom(testField));
+    const [
+      { value: resetValue, isValid: validAfterReset, error: errorAfterReset },
+    ] = afterReset.current;
+    expect(resetValue).toBe("valid initial");
+    expect(validAfterReset).toBe(true);
+    expect(errorAfterReset).toBe(undefined);
+  });
+
+  test("should reset form with multiple field types", () => {
+    const { formFieldAtom, useForm } = createForm();
+    const stringField = formFieldAtom<string>({
+      initialState: "initial string",
+    });
+    const numberField = formFieldAtom<number>({
+      initialState: 0,
+    });
+    const booleanField = formFieldAtom<boolean>({
+      initialState: false,
+    });
+
+    // change all fields
+    const { result: stringResult } = renderHook(() => useAtom(stringField));
+    const [_, setString] = stringResult.current;
+    act(() => {
+      setString("changed string");
+    });
+
+    const { result: numberResult } = renderHook(() => useAtom(numberField));
+    const [_2, setNumber] = numberResult.current;
+    act(() => {
+      setNumber(42);
+    });
+
+    const { result: booleanResult } = renderHook(() => useAtom(booleanField));
+    const [_3, setBoolean] = booleanResult.current;
+    act(() => {
+      setBoolean(true);
+    });
+
+    // reset the form
+    const { result: formResult } = renderHook(() =>
+      useForm({
+        onValid: () => {
+          /* do nothing */
+        },
+      }),
+    );
+    const { resetForm } = formResult.current;
+    act(() => {
+      resetForm();
+    });
+
+    // verify all fields are reset
+    const { result: afterResetString } = renderHook(() => useAtom(stringField));
+    const [{ value: stringReset }] = afterResetString.current;
+    expect(stringReset).toBe("initial string");
+
+    const { result: afterResetNumber } = renderHook(() => useAtom(numberField));
+    const [{ value: numberReset }] = afterResetNumber.current;
+    expect(numberReset).toBe(0);
+
+    const { result: afterResetBoolean } = renderHook(() =>
+      useAtom(booleanField),
+    );
+    const [{ value: booleanReset }] = afterResetBoolean.current;
+    expect(booleanReset).toBe(false);
+  });
+
+  test("should reset atom family members when calling resetForm", () => {
+    const { formFieldAtomFamily, useForm } = createForm();
+    const testFamily = formFieldAtomFamily<string, string>({
+      initialState: "initial",
+    });
+    const firstAtom = testFamily("first");
+    const secondAtom = testFamily("second");
+
+    // change both atoms
+    const { result: firstResult } = renderHook(() => useAtom(firstAtom));
+    const [_, setFirst] = firstResult.current;
+    act(() => {
+      setFirst("changed first");
+    });
+
+    const { result: secondResult } = renderHook(() => useAtom(secondAtom));
+    const [_2, setSecond] = secondResult.current;
+    act(() => {
+      setSecond("changed second");
+    });
+
+    // reset the form
+    const { result: formResult } = renderHook(() =>
+      useForm({
+        onValid: () => {
+          /* do nothing */
+        },
+      }),
+    );
+    const { resetForm } = formResult.current;
+    act(() => {
+      resetForm();
+    });
+
+    // verify both atoms are reset
+    const { result: afterResetFirst } = renderHook(() => useAtom(firstAtom));
+    const [{ value: firstReset }] = afterResetFirst.current;
+    expect(firstReset).toBe("initial");
+
+    const { result: afterResetSecond } = renderHook(() => useAtom(secondAtom));
+    const [{ value: secondReset }] = afterResetSecond.current;
+    expect(secondReset).toBe("initial");
+  });
+});

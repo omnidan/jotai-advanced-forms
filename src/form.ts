@@ -1,5 +1,6 @@
 import {
   useAtom,
+  useSetAtom,
   atom,
   type Atom,
   type PrimitiveAtom,
@@ -131,6 +132,7 @@ export interface UseFormResult {
   submitForm: () => void;
   isSubmitting: boolean;
   resetValidation: () => void;
+  resetForm: () => void;
 }
 
 export type UseFormFunction = (options: UseFormOptions) => UseFormResult;
@@ -310,12 +312,19 @@ export function internalFormAtom(
  *
  * handles common form actions, such as a "submitForm" function
  */
-export function internalCreateUseForm(formAtom: FormAtomType): UseFormFunction {
+export function internalCreateUseForm(
+  formAtom: FormAtomType,
+  formFields: Set<AnyFormFieldAtom>,
+): UseFormFunction {
   return function useForm(options: UseFormOptions): UseFormResult {
     const [
       { isValid, isSubmitting, focusableFormFieldsWithError },
       setFormState,
     ] = useAtom(formAtom);
+
+    const fieldSetters = Array.from(formFields).map((fieldAtom) =>
+      useSetAtom(fieldAtom),
+    );
 
     const handleSubmit = async () => {
       if (isValid) await options.onValid();
@@ -379,6 +388,12 @@ export function internalCreateUseForm(formAtom: FormAtomType): UseFormFunction {
       resetValidation: () => {
         setFormState({ submitted: false });
       },
+      resetForm: () => {
+        fieldSetters.forEach((setter) => {
+          setter(RESET);
+        });
+        setFormState({ submitted: false });
+      },
     };
   };
 }
@@ -399,10 +414,7 @@ export function internalCreateForm() {
   // store a list of form fields created in the form,
   // used to validate the whole form later
   // in this case, we do not care about the actual value of form fields, just that they are form fields
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const formFields = new Set<FormFieldAtom<any, GenericErrorMessageKeys, any>>(
-    [],
-  );
+  const formFields = new Set<AnyFormFieldAtom>([]);
 
   // store a mapping from form field atom families to their instantiated form fields
   // we need this so we can track when form fields get removed from the family
@@ -632,7 +644,7 @@ export function internalCreateForm() {
   const formAtom = internalFormAtom(formStateAtom, formFields);
 
   // create the form hook (used to handle submission, resetting validation, etc)
-  const useForm = internalCreateUseForm(formAtom);
+  const useForm = internalCreateUseForm(formAtom, formFields);
 
   return {
     formStateAtom,
