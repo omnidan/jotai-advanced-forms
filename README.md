@@ -94,7 +94,7 @@ export function NameInputForm() {
     atom: lastNameAtom,
   });
 
-  const { submitForm, isSubmitting } = useForm({
+  const { submitForm, resetForm, isSubmitting } = useForm({
     onValid: () => alert("success!"),
   });
 
@@ -108,9 +108,34 @@ export function NameInputForm() {
       <StringInput {...firstNameField} />
       <StringInput {...lastNameField} />
       <input type="submit" value="Submit" disabled={isSubmitting} />
+      <button type="button" onClick={resetForm}>
+        Reset Form
+      </button>
     </form>
   );
 }
+```
+
+### Resetting Form Fields
+
+You can reset the entire form or individual fields:
+
+```tsx
+import { useAtom } from "jotai";
+import { useResetAtom } from "jotai/utils";
+
+// Reset the entire form
+const { resetForm } = useForm({
+  onValid: () => alert("success!"),
+});
+
+resetForm(); // Resets all fields to their initial values
+
+// Reset an individual field
+const emailField = formFieldAtom({ initialState: "" });
+const resetEmail = useResetAtom(emailField);
+
+resetEmail(); // Resets only the email field
 ```
 
 ## Development

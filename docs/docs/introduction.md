@@ -25,6 +25,7 @@ A powerful, type-safe, and composable form state management library for React, b
 
 - Field-level and form-level validation
 - Dynamic field arrays (multi-fields)
+- Form and field reset capabilities
 - Focus management for accessibility
 - Type-safe error messages
 - Easy integration with UI libraries

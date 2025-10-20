@@ -64,7 +64,7 @@ Atom representing the form's state, including validity and error focus managemen
 
 ### `useForm(options)`
 
-React hook for handling form submission and validation.
+React hook for handling form submission, validation, and form reset.
 
 #### Options
 
@@ -75,7 +75,56 @@ React hook for handling form submission and validation.
 
 - `submitForm()` – Triggers form validation and submission.
 - `isSubmitting` – Boolean indicating if the form is submitting.
-- `resetValidation()` – Resets the form's validation state.
+- `resetValidation()` – Resets the form's validation state (clears error display).
+- `resetForm()` – Resets all form fields to their initial values and clears validation state.
+
+---
+
+## Resetting Form Fields
+
+### Resetting the Entire Form
+
+Use the `resetForm()` function returned from `useForm()` to reset all fields in the form to their initial values:
+
+```tsx
+const { resetForm } = useForm({
+  onValid: () => console.log("Form submitted!"),
+});
+
+// Reset all fields to their initial values
+resetForm();
+```
+
+This will:
+
+- Reset all form field values to their `initialState`
+- Reset all `isDirty` flags to `false`
+- Clear validation errors (reset `submitted` state)
+
+### Resetting Individual Fields
+
+Form field atoms are created with Jotai's `atomWithReset`, which means you can reset individual fields using Jotai's `useResetAtom` hook:
+
+```tsx
+import { useResetAtom } from "jotai/utils";
+
+const { formFieldAtom } = createForm();
+const emailField = formFieldAtom({ initialState: "" });
+
+function MyComponent() {
+  const [email, setEmail] = useAtom(emailField);
+  const resetEmail = useResetAtom(emailField);
+
+  return (
+    <div>
+      <input value={email.value} onChange={(e) => setEmail(e.target.value)} />
+      <button onClick={resetEmail}>Reset Email</button>
+    </div>
+  );
+}
+```
+
+This allows fine-grained control over which fields to reset without affecting the entire form.
 
 ---
 
